@@ -1,12 +1,13 @@
 #**Traffic Sign Recognition** 
 
-##Writeup Template
-
-###You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
 ---
 
 **Build a Traffic Sign Recognition Project**
+
+## Introduction
+This is homework at Self-driving car nanodegree from UDacity. This homework is done by Hengjiu Kang.
+
+*Last three sections used some codes from [NikolasEnt](https://github.com/NikolasEnt/Traffic-Sign-Classifier/blob/master/Traffic_Sign_Classifier.ipynb) to show the images*
 
 The goals / steps of this project are the following:
 * Load the data set (see below for links to the project data set)
@@ -19,48 +20,69 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/visualization.jpg "Visualization"
-[image2]: ./examples/grayscale.jpg "Grayscaling"
-[image3]: ./examples/random_noise.jpg "Random Noise"
-[image4]: ./examples/placeholder.png "Traffic Sign 1"
-[image5]: ./examples/placeholder.png "Traffic Sign 2"
-[image6]: ./examples/placeholder.png "Traffic Sign 3"
-[image7]: ./examples/placeholder.png "Traffic Sign 4"
-[image8]: ./examples/placeholder.png "Traffic Sign 5"
+![post_process](./images/post_process.png) "Random Noise"
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/481/view) individually and describe how I addressed each point in my implementation.  
 
----
-###Writeup / README
-
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one. You can submit your writeup as markdown or pdf. You can use this template as a guide for writing the report. The submission includes the project code.
-
-You're reading it! and here is a link to my [project code](https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb)
-
 ###Data Set Summary & Exploration
 
-####1. Provide a basic summary of the data set and identify where in your code the summary was done. In the code, the analysis should be done using python, numpy and/or pandas methods rather than hardcoding results manually.
+#### Input data
+Input data are pictures(in pixels) in 32x32x3 dimensions. The original data has RGB channels, but in my training process, I just use grascale pictures.
 
-The code for this step is contained in the second code cell of the IPython notebook.  
+```python
+training_file = "train.p"
+validation_file= "valid.p"
+testing_file = "test.p"
 
-I used the pandas library to calculate summary statistics of the traffic
-signs data set:
+with open(training_file, mode='rb') as f:
+    train = pickle.load(f)
+with open(validation_file, mode='rb') as f:
+    valid = pickle.load(f)
+with open(testing_file, mode='rb') as f:
+    test = pickle.load(f)
+    
+X_train, y_train = train['features'], train['labels']
+X_valid, y_valid = valid['features'], valid['labels']
+X_test, y_test = test['features'], test['labels']
+``` 
+and the basic information is:
+```
+Number of training examples = 34799
+Number of testing examples = 12630
+Image data shape = (32, 32)
+Number of classes = 43
+```
 
-* The size of training set is ?
-* The size of test set is ?
-* The shape of a traffic sign image is ?
-* The number of unique classes/labels in the data set is ?
+#### Pre-process
+In this section, I built a 4-stage pipline processing the images. They are:
+* Grayscale
+* EqualizeHist
+* Normalize
+* Gaussian noise
 
-####2. Include an exploratory visualization of the dataset and identify where the code is in your code file.
+As the code below:
+```python
+def pre_process(image_data):
+    result_set = []
+    for i in range(len(image_data)):
+        image = cv2.cvtColor(image_data[i], cv2.COLOR_BGR2GRAY)
+        image = cv2.equalizeHist(image)
+        image = cv2.normalize(image, image, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+        image = noisy(image)
+        result_set.append(np.expand_dims(image, axis=2))
+    return result_set
 
-The code for this step is contained in the third code cell of the IPython notebook.  
+```
 
-Here is an exploratory visualization of the data set. It is a bar chart showing how the data ...
+I found that adding Gaussian noise helped me a lot. Possible reason is that it avoid the overfit.
 
-![alt text][image1]
+
+
 
 ###Design and Test a Model Architecture
+
+
 
 ####1. Describe how, and identify where in your code, you preprocessed the image data. What tecniques were chosen and why did you choose these techniques? Consider including images showing the output of each preprocessing technique. Pre-processing refers to techniques such as converting to grayscale, normalization, etc.
 
