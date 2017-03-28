@@ -57,9 +57,13 @@ Number of classes = 43
 ## Pre-process
 In this section, I built a 4-stage pipline processing the images. They are:
 * Grayscale: 'shrink' RGB channels to one, simplifier the training data, and give it a better focus.
+![grayscal](./images/grayscale.png)
 * EqualizeHist: Adjust the bright and dark region, make the picture more readable.
+![grayscal](./images/equalize.png)
 * Normalize: Conver the uint8 type to float point, make it possible to train the kernel.
+![grayscal](./images/normalize.png)
 * Gaussian noise: It is somehow very useful. After several tries, I found that adding gaussian noise is a good way to avoid overfit.
+![grayscal](./images/noise.png)
 
 As the code below:
 ```python
@@ -110,60 +114,44 @@ My final model results were:
 * validation set accuracy of 93.2% 
 * test set accuracy of 83.33% (6 pictures)
 
-If an iterative approach was chosen:
-* What was the first architecture that was tried and why was it chosen?
-* What were some problems with the initial architecture?
-* How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to over fitting or under fitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.
-* Which parameters were tuned? How were they adjusted and why?
-* What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? How might a dropout layer help with creating a successful model?
+Following are my steps optimize the network:
+* I start with LeNet-5, because it is the network that I am familiar with from the previous class. But eventually I found that this net only gave me around 5% correctness. Then I print out the loss during each iteration.
+* I found that loss is constantly increasing, or "explosion" after several iterations. I thought that it was because of the overfit or completely lost of control. Recall that this network worked great during the hand digit recognition, this setup maybe too simple to recognize the traffic signs in relatively complex environment.
+* So I increased the layers of the first convolution from 6 to 64, and changing the rest of layers accordingly.
+* After this modification, the network immediately gave me around 80% correctness.
+* Tuning parameters including batch size and epochs did not optimize result much, so I tried something else.
+* I looked at the original pictures, found that original pictures were very "clean", meant that network may be overfit, because it may not recognize the signs in more general ways. So I added noise to the training set.
+* After this step, it gave me about 88% correctness. 
+* Looking at the loss data, I found that loss will float around some constant and will not decrease anymore, no matter I change the learning rate or epchs. After reading some papers, I found that fully connected layers can remember a lot of information, but it may avoid back propogation to the neurons, so I remove a fully connected layer. 
+* After that modification, this network gave me about 94% correctness. I think it is good enough.
 
-If a well known architecture was chosen:
-* What architecture was chosen?
-* Why did you believe it would be relevant to the traffic sign application?
-* How does the final model's accuracy on the training, validation and test set provide evidence that the model is working well?
- 
+
 
 ###Test a Model on New Images
 
-####1. Choose five German traffic signs found on the web and provide them in the report. For each image, discuss what quality or qualities might be difficult to classify.
 
-Here are five German traffic signs that I found on the web:
+Here are six German traffic signs that I found on the web:
 
-![alt text][image4] ![alt text][image5] ![alt text][image6] 
-![alt text][image7] ![alt text][image8]
+![alt text][./1.jpg] ![alt text][./2.jpg] ![alt text][./3.jpg] 
+![alt text][./4.jpg] ![alt text][./5.jpg] ![alt text][./6.jpg]
 
-The first image might be difficult to classify because ...
+I think the last image maybe hard to recognize, because it is dark.
 
-####2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. Identify where in your code predictions were made. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the "Stand Out Suggestions" part of the rubric).
-
-The code for making predictions on my final model is located in the tenth cell of the Ipython notebook.
+#### Prediction on the real signs
 
 Here are the results of the prediction:
 
 | Image			        |     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
-| Stop Sign      		| Stop sign   									| 
-| U-turn     			| U-turn 										|
-| Yield					| Yield											|
-| 100 km/h	      		| Bumpy Road					 				|
-| Slippery Road			| Slippery Road      							|
+| Yield      		| Yield   									| 
+| Speed limit 40km/h     			| Speed limit 50km/h										|
+| Priority road					| Priority road 											|
+| Go straight or left	      		| Go straight or left					 				|
+| Ahead only			| Ahead only      							|
+| Speed limit 20km/h            | Speed limit 20km/h                                |
 
+The model was able to correctly guess 5 of the 6 traffic signs, which gives an accuracy of 83.33%. 
 
-The model was able to correctly guess 4 of the 5 traffic signs, which gives an accuracy of 80%. This compares favorably to the accuracy on the test set of ...
-
-####3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction and identify where in your code softmax probabilities were outputted. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
-
-The code for making predictions on my final model is located in the 11th cell of the Ipython notebook.
-
-For the first image, the model is relatively sure that this is a stop sign (probability of 0.6), and the image does contain a stop sign. The top five soft max probabilities were
-
-| Probability         	|     Prediction	        					| 
-|:---------------------:|:---------------------------------------------:| 
-| .60         			| Stop sign   									| 
-| .20     				| U-turn 										|
-| .05					| Yield											|
-| .04	      			| Bumpy Road					 				|
-| .01				    | Slippery Road      							|
-
-
-For the second image ... 
+But I feel confuse about the 40km/h sign, because it is clear, easy to read, and according to the bar chart analyze at step 4.3
+the network does not show any posibility on the 40km/h sign. It seems like the network does not know the 40km/h sign at all.
+I will do more test in the future.
